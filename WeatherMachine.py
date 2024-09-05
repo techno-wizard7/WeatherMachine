@@ -4,6 +4,7 @@ import re
 from urllib.parse import quote_plus
 
 import requests
+from jinja2.nodes import Output
 
 DATA_HEADER_BASIC = {"F": ["Date", "Weather", "Temperature(F°)", "Feels Like", "Humidity", "UV Index", "Wind Direction",
                            "Wind Speed"],
@@ -15,13 +16,26 @@ HOURLY_DATA_HEADER = {"F": ["Time", "Weather", "Temperature(F°)", "Feels Like",
                       "Wind Chill","Wind Direction", "Wind Speed"],
                      "C": ["Time", "Weather", "Temperature(C°)", "Feels Like", "Humidity", "UV Index",
                       "Wind Chill", "Wind Direction", "Wind Speed"]}
+output = []
+
+def printOutput(line):
+    output.append(line)
+
+def dumpOutput(doPrint):
+    global output
+    temp = output.copy()
+    output = []
+    for item in temp:
+        if doPrint:
+            print(item)
+    return temp
 
 def getColumnWidth(header, data):
     column_widths = [max(len(str(item)) for item in column) for column in zip(header, data)]
     return column_widths
 
 def printBorder(column_widths):
-    print("*" + "*".join("-" * (width + 2) for width in column_widths) + "*")
+    printOutput("*" + "*".join("-" * (width + 2) for width in column_widths) + "*")
 
 
 def printTable(headers, data):
@@ -39,10 +53,10 @@ def printTable(headers, data):
     ]
     # Print the table
     printBorder(columnWidths)
-    print(header_row)
-    print(separator_row)
+    printOutput(header_row)
+    printOutput(separator_row)
     for row in data_rows:
-        print(row)
+        printOutput(row)
     printBorder(columnWidths)
 
 
@@ -56,7 +70,7 @@ def getJsonFromUrl(url):
 
     except requests.exceptions.RequestException as e:
         # Handle any errors that occurred during the request
-        print(f"An error occurred: {e}")
+        printOutput(f"An error occurred: {e}")
         return None
 
 
@@ -134,7 +148,7 @@ def getData(args):
     # declare the client. the measuring unit used defaults to the metric system (celcius, km/h, etc.)
     # fetch a weather forecast from a city
     data = getJsonFromUrl(f'https://wttr.in/{quote_plus(args.Location)}?format=j1')
-    if data['request'][0]['query'] == "Ban Not":  # Python-weather redirects to Ban Not if not found.
+    if data['request'][0]['query'] == "Ban Not":  # wttr api redirects to Ban Not if not found. documentation was unclear why
         raise ValueError(f'Location provided could not be found. Try another format as shown in https://wttr.in/:help')
     if args.m:
         units = "C"
@@ -154,7 +168,6 @@ def getData(args):
             buffer = []
     elif not args.f and args.H:
         buffer = []
-        # buffer.append(DATA_HEADER_BASIC[units])
         buffer.append(formatOneDay(data['current_condition'][0], units))
         printTable(DATA_HEADER_BASIC[units], buffer)
         buffer = []
@@ -164,7 +177,6 @@ def getData(args):
 
     else:
         data = formatOneDay(data['current_condition'][0], units)
-        # size = getColumnWidth([DATA_HEADER_BASIC[units], ])
         printTable(DATA_HEADER_BASIC[units], [data])
     return output
 
@@ -200,10 +212,8 @@ def getParser():
     return parser
 
 def run(input):
-    args = getArgs(parser, input)
-    if args.Location == "Exit":
-        raise KeyboardInterrupt
-    return getData(args)
+    getData(input)
+    return dumpOutput(True)
 
 if __name__ == '__main__':
     parser = getParser()
@@ -211,9 +221,11 @@ if __name__ == '__main__':
         try:
             # Get input from the user
             input_str = input("Enter a Location and flags. Type 'Exit' to Exit")
-            run(input_str.split())
-
-
+            args = getArgs(parser, input_str.split())
+            if args.Location == "Exit":
+                raise KeyboardInterrupt
+            getData(args)
+            dumpOutput(True)
         except KeyboardInterrupt:
             print("\nExiting...")
             break
