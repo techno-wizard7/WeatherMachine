@@ -1,0 +1,29 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Button Example</title>
+</head>
+    <body>
+        <h1>Enter location &</h1>
+        <h1>Press the Button to Call the Function</h1>
+        <form action="/" method="GET">
+            <input type="text" name="text" placeholder="Enter text">
+            <input type="checkbox" id="fiveDay" name="fiveDay" value="True">
+            <label for="fiveDay"> Get All Upcoming Forecast</label>
+            <input type="checkbox" id="hourly" name="hourly" value="True">
+            <label for="hourly"> Hourly Forcast</label>
+            <input type="checkbox" id="metric" name="metric" value="True">
+            <label for="hourly"> Use Metric</label><br>
+            <button type="submit" formaction="/lookup">Lookup</button>
+            <button type="submit" formaction="/getmyweather">Lookup my Location Instead</button><br><br>
+        </form>
+        <section>
+            {% for row in text %}
+                <pre>{{ row }}</pre>
+            {% endfor %}
+        </section>
+    </body>
+</html>
