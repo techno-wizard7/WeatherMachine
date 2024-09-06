@@ -14,38 +14,85 @@
                 desc.style.display = "none";
             }
         }
+        function roundCoordinates(inputStr) {
+            function roundMatch(match) {
+                let number = parseFloat(match);
+                return number.toFixed(2);
+            }
+
+            let resultStr = inputStr.replace(/\d+\.\d+/g, roundMatch);
+            resultStr = resultStr.replace(/(\.\d*?[1-9])0+$/, '$1');
+            resultStr = resultStr.replace(/\.(?=\D|$)/, '');
+            return resultStr;
+        }
+        function locateIP() {
+            fetch('https://ipinfo.io/json')
+                .then(response => response.json())
+                .then(data => {
+                    const location = data.loc;
+                    console.log("Client IP:", ip);
+                    document.getElementById("location").value = location
+                    document.getElementById("data").submit();
+                })
+                .catch(error => console.error('Error fetching IP:', error));
+        }
     </script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 48px;
+        }
+        p {
+
+            line-height: 0.5;
+            white-space: pre;
+            text-align: left;
+            font-size: 24px;
+
+        }
         footer {
           padding: 20px;
           float: left
           width: 30%;
           background-color: #f1f1f1;
-          position: absolute;
-          bottom: 0;
+          position: sticky;;
+          bottom: 100;
         }
     </style>
 
 </head>
     <body>
         <h2>Select Options and Press the LookupButton to Call the Function</h2>
-        <form action="/" method="GET">
-            <input type="text" name="text" placeholder="Enter text">
+        <form name="data" action="/" method="GET" >
+            <input type="text" name="location" placeholder="Enter text">
             <input type="checkbox" id="fiveDay" name="fiveDay" value="True">
             <label for="fiveDay"> Get All Upcoming Forecast</label>
             <input type="checkbox" id="hourly" name="hourly" value="True">
             <label for="hourly"> Hourly Forcast</label>
             <input type="checkbox" id="metric" name="metric" value="True">
             <label for="hourly"> Use Metric</label><br>
-            <button type="submit" formaction="/lookup">Lookup</button>
-            <button type="submit" formaction="/getmyweather">Lookup my Location Instead</button><br><br>
+            <button type="submit">Lookup</button>
+            <button onclick="locateIP()">Lookup my Location Instead</button><br><br>
         </form>
         <section>
-            {% for row in text %}
-                <pre>{{ row }}</pre>
-            {% endfor %}
+            {% if text != none %}
+       <p>
+        {% for row in text %}
+        <code>{{ row }}</code>
+<!--           {{ row }}-->
+        {% endfor %}
+       </p>
+            {% endif %}
         </section>
-        <footer>
+
+    </body>
+    <footer>
         <button onclick="toggleText()">Info</button>
             <section id="desc", style="display:none;">
         <p class="info">This Project was made by Kordell Carmin for The Product Manager Accelerator Program</p>
@@ -53,7 +100,6 @@
             The Product Manager Accelerator Program is designed to support PM professionals through every stage of their career. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
             Our Product Manager Accelerator community are ambitious and committed. Through our program they have learnt, honed and developed new PM and leadership skills, giving them a strong foundation for their future endeavours.
         </p>
-                </section>
+            </section>
         </footer>
-    </body>
 </html>

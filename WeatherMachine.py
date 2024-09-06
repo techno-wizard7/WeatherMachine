@@ -16,13 +16,16 @@ HOURLY_DATA_HEADER = {"F": ["Time", "Weather", "Temperature(F°)", "Feels Like",
                       "Wind Chill", "Wind Direction", "Wind Speed"]}
 
 
+def sendError(output):
+    output.insert(0, "ERROR")
 def printOutput(line, output):
     output.append(line)
     return output
 
 def dumpOutput(output):
-    for item in output:
-        print(item)
+    if output:
+        for item in output:
+            print(item)
 
 
 def getColumnWidth(header, data):
@@ -57,7 +60,7 @@ def printTable(headers, data, output):
     return output
 
 
-def getJsonFromUrl(url):
+def getJsonFromUrl(url, output):
     try:
         response = requests.get(url)
         response.raise_for_status()  # This will raise an HTTPError for bad responses (4xx and 5xx)
@@ -66,7 +69,8 @@ def getJsonFromUrl(url):
 
     except requests.exceptions.RequestException as e:
         # Handle any errors that occurred during the request
-        printOutput(f"An error occurred: {e}")
+        sendError(output)
+        printOutput(f"An error occurred: {e}", output)
         return None
 
 
@@ -83,7 +87,11 @@ def timeFormat(time):
     mid = len(time) // 2
     # Split the string into two halves
     firstHalf = time[:mid]
+    while len(firstHalf) < 2:
+        firstHalf = "0"+firstHalf
     secondHalf = time[mid:]
+    while len(secondHalf) < 2:
+        secondHalf = "0"+secondHalf
 
     # Join the halves with a colon
     result = firstHalf + ':' + secondHalf
@@ -110,10 +118,6 @@ def getLocation(ip):
 
 
 def formatDaily(weather, unit="F"):
-    if unit == "F":
-        speedUnits = "Miles"
-    else:
-        speedUnits = "Kmph"
     data = [weather['date'], weather[f'avgtemp{unit}'],
             weather[f'maxtemp{unit}'], weather[f'mintemp{unit}'], weather['uvIndex']]
     return data
@@ -139,12 +143,11 @@ def formatHourly(weather, unit):
             weather[f'windspeed{speedUnits}']]
     return data
 
-def getData(args, output):
-    # declare the client. the measuring unit used defaults to the metric system (celcius, km/h, etc.)
-    # fetch a weather forecast from a city
-    data = getJsonFromUrl(f'https://wttr.in/{quote_plus(args.Location)}?format=j1')
+def getData(args, output):    # fetch a weather forecast from a city
+    data = getJsonFromUrl(f'https://wttr.in/{quote_plus(args.Location)}?format=j1', output)
     if data is None or data['request'][0]['query'] == "Ban Not":  # wttr api redirects to Ban Not if not found. documentation was unclear why
-        printOutput(f'Location provided could not be found. Try another format as shown in https://wttr.in/:help')
+        sendError(output)
+        printOutput(f'Location provided could not be found. Try another format as shown in https://wttr.in/:help', output)
         return
     if args.m:
         units = "C"
@@ -210,7 +213,7 @@ def getParser():
 def run(input):
     output = []
     output = getData(input, output)
-    dumpOutput(output, True)
+    dumpOutput(output)
     return output
 
 if __name__ == '__main__':
