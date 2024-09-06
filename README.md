@@ -11,4 +11,4 @@ To use the weather machine, download the repository and run
  
  `flask run --0.0.0.0` to start the webservice or `python WeatherMachine.py` to run the service on device
 
-### Important: running the webservice locally will not be able to get Device Location for Local Weather. It can only be accessed from outside a local network or using the on-device function
+### Important: running the webservice locally will not be able to get Device Location for Local Weather for any device on the local network. It can only be accessed from outside a local network or using the on-device function
