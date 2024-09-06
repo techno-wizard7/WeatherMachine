@@ -1,4 +1,5 @@
 # # app.py (Flask Backend)
+# # built by Kordell Carmin
 import types
 from flask import Flask, request, render_template
 from WeatherMachine import run, getLocation
@@ -19,6 +20,8 @@ def formatInput(location, f=False, H=False, m=False):
 def index():
     return render_template('WeatherMachine.html', text = "")
 
+def get404(message):
+    return render_template('WeatherMachine.html', text=[message])
 
 @app.route('/lookup')
 def lookup():
@@ -34,10 +37,13 @@ def lookup():
 @app.route("/getmyweather", methods=["GET"])
 def getMyWeather():
     text = getLocation(request.remote_addr)
+    if text == "Location not found":
+        return get404(f"Sorry but we could not find the location of the IP address {request.remote_addr}.")
+    print(text)
     fiveDay = request.args.get('fiveDay', default=False, type=bool)  # , 'No text provided'
     hourly = request.args.get('hourly', default=False, type=bool)
     metric = request.args.get('metric', default=False, type=bool)
-    output = run(formatInput(text, hourly, fiveDay, metric))
+    output = run(formatInput("199.87.139.146", hourly, fiveDay, metric))
     render = render_template('WeatherMachine.html', text=output)
     return render
 

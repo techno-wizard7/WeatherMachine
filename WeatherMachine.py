@@ -3,6 +3,7 @@ import re
 from urllib.parse import quote_plus
 import requests
 
+
 DATA_HEADER_BASIC = {"F": ["Date", "Weather", "Temperature(F°)", "Feels Like", "Humidity", "UV Index", "Wind Direction",
                            "Wind Speed"],
                      "C": ["Date", "Weather", "Temperature(C°)", "Feels Like", "Humidity", "UV Index", "Wind Direction",
@@ -13,29 +14,27 @@ HOURLY_DATA_HEADER = {"F": ["Time", "Weather", "Temperature(F°)", "Feels Like",
                       "Wind Chill","Wind Direction", "Wind Speed"],
                      "C": ["Time", "Weather", "Temperature(C°)", "Feels Like", "Humidity", "UV Index",
                       "Wind Chill", "Wind Direction", "Wind Speed"]}
-output = []
 
-def printOutput(line):
+
+def printOutput(line, output):
     output.append(line)
+    return output
 
-def dumpOutput(doPrint):
-    global output
-    temp = output.copy()
-    output = []
-    for item in temp:
-        if doPrint:
-            print(item)
-    return temp
+def dumpOutput(output):
+    for item in output:
+        print(item)
+
 
 def getColumnWidth(header, data):
     column_widths = [max(len(str(item)) for item in column) for column in zip(header, data)]
     return column_widths
 
-def printBorder(column_widths):
-    printOutput("*" + "*".join("-" * (width + 2) for width in column_widths) + "*")
+def printBorder(column_widths, output):
+    output = printOutput("*" + "*".join("-" * (width + 2) for width in column_widths) + "*", output)
+    return output
 
 
-def printTable(headers, data):
+def printTable(headers, data, output):
     # UNDERLINE = "\033[4m"
     # RESET = "\033[0m"
     columnWidths = [max(len(str(item)) for item in column) for column in zip(headers, *data)]
@@ -49,13 +48,13 @@ def printTable(headers, data):
         for row in data
     ]
     # Print the table
-    printBorder(columnWidths)
-    printOutput(header_row)
-    printOutput(separator_row)
+    output = printBorder(columnWidths, output)
+    output = printOutput(header_row, output)
+    output = printOutput(separator_row, output)
     for row in data_rows:
-        printOutput(row)
-    printBorder(columnWidths)
-
+        output = printOutput(row, output)
+    output = printBorder(columnWidths, output)
+    return output
 
 
 def getJsonFromUrl(url):
@@ -140,41 +139,41 @@ def formatHourly(weather, unit):
             weather[f'windspeed{speedUnits}']]
     return data
 
-def getData(args):
-    output = []
+def getData(args, output):
     # declare the client. the measuring unit used defaults to the metric system (celcius, km/h, etc.)
     # fetch a weather forecast from a city
     data = getJsonFromUrl(f'https://wttr.in/{quote_plus(args.Location)}?format=j1')
-    if data['request'][0]['query'] == "Ban Not":  # wttr api redirects to Ban Not if not found. documentation was unclear why
-        raise ValueError(f'Location provided could not be found. Try another format as shown in https://wttr.in/:help')
+    if data is None or data['request'][0]['query'] == "Ban Not":  # wttr api redirects to Ban Not if not found. documentation was unclear why
+        printOutput(f'Location provided could not be found. Try another format as shown in https://wttr.in/:help')
+        return
     if args.m:
         units = "C"
     else:
         units = "F"
     location = data['nearest_area'][0]['areaName'][0]['value']
-    print(f"Weather in {location}")
+    output = printOutput(f"Weather in {location}", output)
     if args.f:
         buffer = []
         for daily in data['weather']:
             buffer.append(formatDaily(daily, units)) #.extend(["", "", "", ""])
-            printTable(DAILY_DATA_HEADER[units], buffer)
+            output = printTable(DAILY_DATA_HEADER[units], buffer, output)
             buffer = []
             for hourly in daily['hourly']:
                 buffer.append(formatHourly(hourly, units))
-            printTable(HOURLY_DATA_HEADER[units], buffer)
+            output = printTable(HOURLY_DATA_HEADER[units], buffer, output)
             buffer = []
     elif not args.f and args.H:
         buffer = []
         buffer.append(formatOneDay(data['current_condition'][0], units))
-        printTable(DATA_HEADER_BASIC[units], buffer)
+        output = printTable(DATA_HEADER_BASIC[units], buffer, output)
         buffer = []
         for hourly in data['weather'][0]['hourly']:
             buffer.append(formatHourly(hourly, units))
-        printTable(HOURLY_DATA_HEADER[units], buffer)
+        output = printTable(HOURLY_DATA_HEADER[units], buffer, output)
 
     else:
         data = formatOneDay(data['current_condition'][0], units)
-        printTable(DATA_HEADER_BASIC[units], [data])
+        output = printTable(DATA_HEADER_BASIC[units], [data], output)
     return output
 
 
@@ -209,20 +208,23 @@ def getParser():
     return parser
 
 def run(input):
-    getData(input)
-    return dumpOutput(True)
+    output = []
+    output = getData(input, output)
+    dumpOutput(output, True)
+    return output
 
 if __name__ == '__main__':
     parser = getParser()
     while True:
         try:
             # Get input from the user
-            input_str = input("Enter a Location and flags. Type 'Exit' to Exit")
+            input_str = input("Enter a Location and flags. Type 'Exit' to Exit: ")
+            output = []
             args = getArgs(parser, input_str.split())
             if args.Location == "Exit":
                 raise KeyboardInterrupt
-            getData(args)
-            dumpOutput(True)
+            getData(args, output)
+            dumpOutput(output)
         except KeyboardInterrupt:
             print("\nExiting...")
             break
