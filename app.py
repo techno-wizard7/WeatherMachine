@@ -1,16 +1,9 @@
 # # app.py (Flask Backend)
-# import subprocess
-# import WeatherMachine
-
 import types
-
 from flask import Flask, request, render_template
-
 from WeatherMachine import run, getLocation
 
-# render_template_string
 app = Flask(__name__)
-
 
 def formatInput(location, f=False, H=False, m=False):
     # because I wrote this only thinking of backend functionality first (my mistake) it's arguments are handled through
@@ -21,13 +14,6 @@ def formatInput(location, f=False, H=False, m=False):
     setattr(args, 'H', H)
     setattr(args, 'm', m)
     return args
-
-# def formatOutput(text):
-#     outputText = ""
-#     for string in text:
-#         outputText= outputText + string + "\n"
-#     return outputText
-
 
 @app.route('/')
 def index():

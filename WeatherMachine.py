@@ -1,10 +1,7 @@
 import argparse
 import re
-# import asyncio
 from urllib.parse import quote_plus
-
 import requests
-from jinja2.nodes import Output
 
 DATA_HEADER_BASIC = {"F": ["Date", "Weather", "Temperature(F°)", "Feels Like", "Humidity", "UV Index", "Wind Direction",
                            "Wind Speed"],

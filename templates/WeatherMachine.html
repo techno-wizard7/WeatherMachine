@@ -4,9 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Button Example</title>
+    <title>Weather Machine</title>
+    <script>
+        function toggleText() {
+            var desc = document.getElementById("desc");
+            if (desc.style.display === "none") {
+                desc.style.display = "block";
+            } else {
+                desc.style.display = "none";
+            }
+        }
+    </script>
+    <style>
+        footer {
+          padding: 20px;
+          float: left
+          width: 30%;
+          background-color: #f1f1f1;
+          position: absolute;
+          bottom: 0;
+        }
+    </style>
+
 </head>
     <body>
+        <link></link>
         <h1>Enter location &</h1>
         <h1>Press the Button to Call the Function</h1>
         <form action="/" method="GET">
@@ -25,5 +47,15 @@
                 <pre>{{ row }}</pre>
             {% endfor %}
         </section>
+        <footer>
+        <button onclick="toggleText()">Info</button>
+            <section id="desc", style="display:none;">
+        <p class="info">This Project was made by Kordell Carmin for The Product Manager Accelerator Program</p>
+        <p class="info">
+            The Product Manager Accelerator Program is designed to support PM professionals through every stage of their career. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations.
+            Our Product Manager Accelerator community are ambitious and committed. Through our program they have learnt, honed and developed new PM and leadership skills, giving them a strong foundation for their future endeavours.
+        </p>
+                </section>
+        </footer>
     </body>
 </html>
